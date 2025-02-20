@@ -5,5 +5,11 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1.0.95"
+dotenv = "0.15.0"
 env_logger = "0.11.6"
 log = "0.4.25"
+reqwest = "0.12.12"
+sentry = "0.36.0"
+serde = { version = "1.0.218", features = ["derive"] }
+sentry-log = "0.36.0"
+sentry-anyhow = "0.36.0"

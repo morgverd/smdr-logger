@@ -1,21 +1,20 @@
-use std::net::TcpStream;
+use std::net::{SocketAddr, TcpStream};
 use std::io::{BufReader, BufRead};
-use std::time::Duration;
 use anyhow::{Context, Result};
 use crate::types::SMDRRecord;
 
 pub struct SMDRSocket {
-    address: String,
+    address: SocketAddr,
     reader: Option<BufReader<TcpStream>>
 }
 
 impl SMDRSocket {
-    pub fn new(address: &str) -> Self {
-        SMDRSocket { address: address.to_string(), reader: None }
+    pub fn new(address: SocketAddr) -> Self {
+        SMDRSocket { address, reader: None }
     }
 
     fn connect(&mut self) -> Result<()> {
-        let stream = TcpStream::connect(&self.address)?;
+        let stream = TcpStream::connect(self.address)?;
         self.reader = Some(BufReader::new(stream));
         Ok(())
     }

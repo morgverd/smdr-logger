@@ -1,25 +1,31 @@
-use std::time::{Duration, Instant};
+use std::time::Duration;
 use anyhow::{anyhow, Context, Result};
+use serde::Serialize;
 
-#[derive(Debug, Clone)]
+#[derive(Serialize, Debug, Clone)]
 pub struct ActivePhoneCall {
+    call_id: String,
     start: String,
     records: Vec<SMDRRecord>
 }
 impl ActivePhoneCall {
-    pub fn new(start: String) -> Self {
-        Self { start, records: Vec::new() }
+    pub fn new(call_id: String, start: String) -> Self {
+        Self { call_id, start, records: Vec::new() }
     }
 
     pub fn add_record(&mut self, record: SMDRRecord) {
         self.records.push(record)
     }
+
+    pub fn id(&self) -> &String {
+        &self.call_id
+    }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Serialize, Debug, Clone)]
 pub struct SMDRRecord {
     pub start: String,
-    pub duration: Duration,
+    pub duration: u64,
     pub ring: u8,
     pub caller: String,
     pub direction: String,
@@ -55,7 +61,7 @@ impl SMDRRecord {
 
         Ok(SMDRRecord {
             start: parts[0].to_string(),
-            duration,
+            duration: duration.as_secs(),
             ring: parts[2].parse().context("Failed to parse ring ")?,
             caller: parts[3].to_string(),
             direction: parts[4].to_string(),
