@@ -9,7 +9,7 @@ pub struct Config {
     pub webhook_key: String,
     pub webhook_max_retries: u32,
     pub webhook_retry_delay_secs: u64,
-    pub sentry_dsn: String,
+    pub sentry_dsn: Option<String>,
     pub sentry_cron_url: Option<String>,
     pub sentry_cron_interval: u64,
 }
@@ -26,7 +26,6 @@ pub fn from_env() -> Result<Config> {
 
     Ok(Config {
         smdr_socket_addr: get_env_var("SMDR_ADDR")?.parse::<SocketAddr>()?,
-
         webhook_url: get_env_var("SMDR_WEBHOOK_URL")?,
         webhook_key: get_env_var("SMDR_WEBHOOK_KEY")?,
         webhook_max_retries: get_env_var("SMDR_WEBHOOK_MAX_RETRIES")
@@ -39,7 +38,7 @@ pub fn from_env() -> Result<Config> {
                 .map_err(|e| anyhow!("Invalid SMDR_WEBHOOK_RETRY_DELAY: {}", e)))
             .unwrap_or(Ok(DEFAULT_RETRY_DELAY_SECS))?,
 
-        sentry_dsn: get_env_var("SMDR_SENTRY_DSN")?,
+        sentry_dsn: get_env_var("SMDR_SENTRY_DSN").ok(),
         sentry_cron_url: get_env_var("SMDR_SENTRY_CRON_URL").ok(),
         sentry_cron_interval: get_env_var("SMDR_SENTRY_CRON_INTERVAL")
             .map(|v| v.parse::<u64>()

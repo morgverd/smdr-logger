@@ -90,14 +90,20 @@ fn main() -> Result<()> {
     let config = from_env()?;
 
     // Initialize Sentry guard.
-    let _guard = sentry::init((config.sentry_dsn.to_string(), sentry::ClientOptions {
-        release: sentry::release_name!(),
-        before_send: Some(Arc::new(|event| {
-            error!("Sending to Sentry: {}", event.message.as_deref().unwrap_or("Unknown!"));
-            Some(event)
-        })),
-        ..Default::default()
-    }));
+    let _guard = if let Some(ref sentry_dsn) = config.sentry_dsn {
+        info!("Initializing Sentry...");
+        Some(sentry::init((sentry_dsn.clone(), sentry::ClientOptions {
+            release: sentry::release_name!(),
+            before_send: Some(Arc::new(|event| {
+                error!("Sending to Sentry: {}", event.message.as_deref().unwrap_or("Unknown!"));
+                Some(event)
+            })),
+            ..Default::default()
+        })))
+    } else {
+        warn!("Sentry DSN is unset! Not initializing.");
+        None
+    };
 
     // Create SMDR connection.
     let mut socket = SMDRSocket::new(config.smdr_socket_addr);

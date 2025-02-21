@@ -1,4 +1,4 @@
-use std::cmp::min;
+use std::cmp::{max, min};
 use std::sync::mpsc::Receiver;
 use std::thread;
 use std::time::Duration;
@@ -79,25 +79,28 @@ pub fn sentry_cron_worker(
     sentry_url: String,
     sentry_interval: u64
 ) {
-    let duration = Duration::from_secs(sentry_interval);
+    let success_duration = Duration::from_secs(sentry_interval);
+    let error_duration = Duration::from_secs(max(5, sentry_interval / 2));
+
     loop {
 
         match client.get(&sentry_url).send() {
             Ok(response) => {
                 if response.status().is_success() {
                     debug!("Sentry CRON request submitted successfully!");
+                    thread::sleep(success_duration);
                 } else {
 
                     // No point in capturing a message here, eventually Sentry will
                     // detect the missing CRON updates and trigger an alert itself.
                     warn!("Failed to send Sentry CRON request!");
+                    thread::sleep(error_duration);
                 }
             },
             Err(e) => {
                 capture_message(format!("Sentry CRON request error: {e}").as_str(), Level::Warning);
+                thread::sleep(error_duration);
             }
         }
-
-        thread::sleep(duration);
     }
 }
